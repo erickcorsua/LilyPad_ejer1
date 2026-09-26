@@ -1,6 +1,5 @@
+#include <Arduino.h>
 #include "hardware.h"
-//#include <Arduino.h>
-#include <stdint.h>
 
 void setup() {
   // put your setup code here, to run once:
