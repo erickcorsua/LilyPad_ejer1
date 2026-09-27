@@ -76,4 +76,35 @@ static const uint8_t LED_BAR_PINS[NUM_BAR_LEDS] =
 // Si existe interruptor físico en el diseño
 // #define PIN_SWITCH     A9
 
+//global variables to track pin initialization
+extern bool gb_LedBarPin_Init;
+extern bool gb_RGBLedPin_Init;
+extern bool gb_CommunicationPin_Init;
+extern bool gb_InternalLedPin_Init;
+extern bool gb_ButtonPin_Init;
+extern bool gb_BuzzerPin_Init;
+extern bool gb_LightSensorPin_Init;
+
+//================ function prototypes ================
+// initialize the hardware pins
+void LedBarPin_Init(void);
+void RGBLedPin_Init(void);
+void CommunicationPin_Init(void);
+void InternalLedPin_Init(void);
+void ButtonPin_Init(void);
+void BuzzerPin_Init(void);
+void LightSensorPin_Init(void);
+
+//------LedBar functions------
+void BarLed_Set(uint8_t ledIndex, bool continuous);
+void BarLed_Off(void);
+//------RGB functions---------
+void RGBLed_Set(bool red, bool green, bool blue);
+//---LightSensor functions----
+uint16_t LightSensor_Read(void);
+//---Buzzer functions---------
+void Buzzer_On(uint16_t freq);
+void Buzzer_Off(void);
+
+
 #endif // HARDWARE_H
