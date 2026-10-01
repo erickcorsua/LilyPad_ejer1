@@ -1,83 +1,141 @@
 #include <Arduino.h>
 #include "hardware.h"
+#include "task.h"
 #include <TaskScheduler.h>
 
 /*
 For this project, we will use the Lilypad USB Plus board. And the TaskScheduler library 
 to manage the tasks. This library was done by Anatoli Arkhipenko
 */
+//================global variables ==============
+// Define the scheduler
+Scheduler runner;
 
-//----------- configuration -------------
-// some macros
-#define LIGHT_THRESHOLD      700U
+//Task structures
+Task tReadLight(LIGHT_SNSR_PERIOD_MS, TASK_FOREVER, &Task_ReadLight);
+Task tReadButton(BUTTON_PERIOD_MS, TASK_FOREVER, &Task_ReadButton);
+Task tBargraph(BARGRAPH_PERIOD_MS, TASK_FOREVER, &Task_Bargraph);
+Task tBuzzer(RGB_BLINK_PERIOD_MS, TASK_FOREVER, &Task_Buzzer);
+Task tRGBBlink(RGB_BLINK_PERIOD_MS, TASK_FOREVER, &Task_RGBBlink);
 
-#define BARGRAPH_PERIOD_MS   400U
-#define RGB_BLINK_PERIOD_MS  500U
 
-#define ALARM_TIMEOUT_MS     20000UL
-#define COOLDOWN_TIME_MS     30000UL
-
-#define BUTTON_PERIOD_MS     20U
-#define SENSOR_PERIOD_MS     100U
-
-//----------- application states -------------
-
-typedef enum
-{
+typedef enum{
     ST_IDLE = 0,
-    ST_EXPOSURE,
     ST_HALF_EXPOSURE,
     ST_ALARM,
     ST_COOLDOWN
 
-  } AppState_t;
+} AppState_t;
 
-AppState_t g_State = ST_IDLE;
-
-//----------- application variables -------------
-
-uint16_t g_LightRaw = 0;
-uint8_t  g_LightLevel = 0;
-
-bool g_ButtonPressed = false;
-
-bool g_AlarmActive = false;
-bool g_GreenBlinkState = false;
+AppState_t g_AppState = ST_IDLE;
 
 uint32_t g_ExposureStartTime = 0;
+uint32_t g_CooldownStartTime = 0;
 
-
-// Scheduler things
-Scheduler runner; // Create a Scheduler object that will be used to manage the tasks
+bool gb_HalfExposureIndicated = false;
 
 //----------- function prototypes -------------
-
-void Task_ReadLight(void);
-void Task_Button(void);
-void Task_Bargraph(void);
-void Task_RGBBlink(void);
-
-//=========== Task callback functions ==============
-// task to read light
-void Task_ReadLight(void){
-    g_LightRaw = LightSensor_Read();
-    Serial.println(g_LightRaw);
-}
-// task to detect if the button is press
-void Task_ReadButton(void){
-    if(digitalRead(PIN_BUTTON) == LOW){
-      g_ButtonPressed = true;
-      Serial.println("button pressed");
-    }
-}
-
-//Task structures
-Task tReadLight(SENSOR_PERIOD_MS, TASK_FOREVER, &Task_ReadLight);
-Task tReadButton(BUTTON_PERIOD_MS, TASK_FOREVER, &Task_ReadButton);
+// FSM 
+void FSM_Update(void);
 
 //----------- function definitions -----------
+void FSM_Update(void){
+
+  switch(g_AppState){
+    // In the idle state, we do measurements of the light, we exit when th light level is above the threshold
+    // we lunch the half exposure timeout and the alarm timeout, very usefull for the next states
+    case ST_IDLE:
+
+    if(g_LightLevel > LIGHT_THRESHOLD)
+    {
+        g_AppState = ST_HALF_EXPOSURE;
+
+        g_ExposureStartTime = millis();
+
+        gb_HalfExposureIndicated = false;
+
+        tRGBBlink.disable();
+        RGBLed_Set(false, false, false);
+    }
+
+break;
+    //verify if the light level is still above the threshold, if yes, we continue with the exposure, if not,
+    //we go back to idle state and disable the timeouts and the RGB LED
+    case ST_HALF_EXPOSURE:
+
+    if(g_LightLevel <= LIGHT_THRESHOLD)
+    {
+        g_AppState = ST_IDLE;
+
+        tRGBBlink.disable();
+        RGBLed_Set(false, false, false);
+    }
+    else
+    {
+        uint32_t elapsedTime = millis() - g_ExposureStartTime;
+
+        if((elapsedTime >= 10000) && (!gb_HalfExposureIndicated))
+        {
+            gb_HalfExposureIndicated = true;
+
+            tRGBBlink.enable();
+        }
+
+        if(elapsedTime >= 20000)
+        {
+            tRGBBlink.disable();
+            RGBLed_Set(false, false, false);
+
+            tBuzzer.enable();
+
+            g_AppState = ST_ALARM;
+        }
+    }
+
+break;
+
+case ST_ALARM:
+
+    if(gb_ButtonPressed)
+    {
+        gb_ButtonPressed = false;
+
+        tBuzzer.disable();
+        Buzzer_Off();
+
+        BarLed_Off();
+
+        tReadLight.disable();
+        tBargraph.disable();
+
+        g_CooldownStartTime = millis();
+
+        g_AppState = ST_COOLDOWN;
+    }
+
+break;
+case ST_COOLDOWN:
+
+    if((millis() - g_CooldownStartTime) >= 30000)
+    {
+        tReadLight.enable();
+        tBargraph.enable();
+
+        g_AppState = ST_IDLE;
+    }
+
+break;
 
 
+    default:
+      g_AppState = ST_IDLE;
+      break;
+  }
+}
+
+
+
+//----------------ARDUINO SETUP AND LOOP----------------
 void setup() {
   // Initialize the hardware pins
   LedBarPin_Init();
@@ -93,17 +151,26 @@ void setup() {
   // Initialize the scheduler
   runner.init(); // Initialize the scheduler
 
-  runner.addTask(tReadLight); // Add the light reading task to the scheduler
+  // Add the tasks to the scheduler
+  runner.addTask(tReadLight);
   runner.addTask(tReadButton);
+  runner.addTask(tBargraph);
+  runner.addTask(tBuzzer);
+  runner.addTask(tRGBBlink);
 
+  // Enable the tasks
   tReadLight.enable();
   tReadButton.enable();
+  tBargraph.enable();
 
 }
 
 void loop(){
 
-  runner.execute(); // Run the scheduler to execute tasks
+  // Execute the scheduler
+  runner.execute();
 
+  // Update the FSM
+  FSM_Update();
 }
 

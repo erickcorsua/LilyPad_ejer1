@@ -109,7 +109,7 @@ void LightSensorPin_Init(void){
         pinMode(PIN_LIGHT_SENSOR, INPUT);
         gb_LightSensorPin_Init = true;
     }
-    
+
 }
 //-------------------------------
 //some other functions can be added here for the hardware,
@@ -117,28 +117,33 @@ void LightSensorPin_Init(void){
 
 /*
 This fucntions turn on a specific LED in the LED bar, it could be only one LED or 
-all the bar until the ledIndex, depending on the continuous parameter. 
+all the bar until the ledIndex, depending on the continuous parameter. If continuous is true, 
+all the LEDs from 0 to ledIndex will be turned on, if continuous is false, only the LED at ledIndex will be turned on.
+And if ledIndex is 0, all the LEDs will be turned off.
 */
-void BarLed_Set(uint8_t ledIndex, bool continuous){
-    if(ledIndex < NUM_BAR_LEDS){
-        for(uint8_t i=0; i<NUM_BAR_LEDS; i++){
-            if(continuous){
-                if(i <= ledIndex){
-                    digitalWrite(LED_BAR_PINS[i], HIGH);
-                }else{
-                    digitalWrite(LED_BAR_PINS[i], LOW);
-                }
-            }else{
-                if(i == ledIndex){
-                    digitalWrite(LED_BAR_PINS[i], HIGH);
-                }else{
-                    digitalWrite(LED_BAR_PINS[i], LOW);
-                }
-            }
+void BarLed_Set(uint8_t level, bool continuous)
+{
+    BarLed_Off();
+
+    if(level == 0){ 
+        return;
+        BarLed_Off();
+    }
+
+    if(level > NUM_BAR_LEDS){
+        level = NUM_BAR_LEDS;
+    }
+
+    if(continuous){
+        for(uint8_t i = 0; i < level; i++){
+            digitalWrite(LED_BAR_PINS[i], HIGH);
         }
     }
+    else{
+        digitalWrite(LED_BAR_PINS[level - 1], HIGH);
+    }
 }
-/**
+/*
  * This function turns off all the LEDs in the LED bar.
  */
 void BarLed_Off(void){
