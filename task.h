@@ -40,4 +40,7 @@ void Task_Buzzer(void);
 void Task_HalfExposureTimeout(void);
 void Task_AlarmTimeout(void);
 void Task_CooldownTimeout(void);
+
 #endif
+
+        

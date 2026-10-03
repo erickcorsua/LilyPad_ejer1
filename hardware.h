@@ -73,6 +73,7 @@ static const uint8_t LED_BAR_PINS[NUM_BAR_LEDS] =
 // Posibles periféricos de la práctica
 #define PIN_LIGHT_SENSOR   A2
 
+
 // Si existe interruptor físico en el diseño
 // #define PIN_SWITCH     A9
 

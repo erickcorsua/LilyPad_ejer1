@@ -23,7 +23,9 @@ uint8_t g_BarLevel = 0;
 
 bool gb_ButtonPressed = false;
 
-
+bool gb_HalfExposureReached = false;
+bool gb_AlarmTimeoutReached = false;
+bool gb_CooldownFinished = false;
 
 //----------- function prototypes -------------
 
@@ -61,11 +63,11 @@ void Task_ReadButton(void){
 
     if(digitalRead(PIN_BUTTON) == LOW){
       
-        if(stable_counter < 4){
+        if(stable_counter < 6){
             stable_counter++;
         }
 
-        if(stable_counter == 4){
+        if(stable_counter == 6){
             gb_ButtonPressed = true;
         }
     }
@@ -78,14 +80,16 @@ void Task_ReadButton(void){
   6 LEDs in the bargraph, so the max value is 6 and the min value is 0
 */
 void Task_Bargraph(void){
+    
+    BarLed_Off();
 
-  g_BarLevel = (g_LightLevel + 15) / 16;
+    g_BarLevel = (g_LightLevel + 15) / 16;
 
-  if(g_BarLevel > NUM_BAR_LEDS){
-    g_BarLevel = NUM_BAR_LEDS;
-  }
+    if(g_BarLevel > NUM_BAR_LEDS){
+        g_BarLevel = NUM_BAR_LEDS;
+    }
 
-  BarLed_Set(g_BarLevel, true);
+    BarLed_Set(g_BarLevel, true);
 }
 /*
  This task will make the RGB green LED blink with a 500 ms period
@@ -115,28 +119,29 @@ void Task_Buzzer(void){
   }
 }
 
-//=========== One-Shot callbacks ==============
+// ============ One shot tasks ==============
 
 /**
- * Called after 10 seconds of continuous exposure.
+ * Triggered after 10 seconds of exposure.
  */
 void Task_HalfExposureTimeout(void){
-    Serial.println("HALF TIMEOUT");
     gb_HalfExposureReached = true;
-}
 
+    Serial.println("HALF EXPOSURE TIMEOUT");
+}
 /**
- * Called after 20 seconds of continuous exposure.
+ * Triggered after 20 seconds of exposure.
  */
 void Task_AlarmTimeout(void){
-    Serial.println("ALARM TIMEOUT");
     gb_AlarmTimeoutReached = true;
-}
 
+    Serial.println("ALARM TIMEOUT");
+}
 /**
- * Called after 30 seconds of cooldown.
+ * Triggered after 30 seconds of cooldown.
  */
 void Task_CooldownTimeout(void){
-    Serial.println("COOLDOWN TIMEOUT");
     gb_CooldownFinished = true;
+
+    Serial.println("COOLDOWN TIMEOUT");
 }
