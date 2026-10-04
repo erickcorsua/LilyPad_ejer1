@@ -2,6 +2,7 @@
 #include "hardware.h"
 #include "task.h"
 #include <TaskScheduler.h>
+#include <stdint.h>
 
 /*
 For this project, we will use the Lilypad USB Plus board. And the TaskScheduler library 
@@ -18,10 +19,11 @@ Task tReadButton(BUTTON_PERIOD_MS, TASK_FOREVER, &Task_ReadButton);
 Task tBargraph(BARGRAPH_PERIOD_MS, TASK_FOREVER, &Task_Bargraph);
 Task tBuzzer(RGB_BLINK_PERIOD_MS, TASK_FOREVER, &Task_Buzzer);
 Task tRGBBlink(RGB_BLINK_PERIOD_MS, TASK_FOREVER, &Task_RGBBlink);
+Task tAccelerometer(ACCELEROMETER_PERIOD_MS, TASK_FOREVER, &Task_Accelerometer);
 
-Task tHalfExposureTimeout(10000, 1, &Task_HalfExposureTimeout);
-Task tAlarmTimeout(20000, 1, &Task_AlarmTimeout);
-Task tCooldownTimeout(30000, 1, &Task_CooldownTimeout);
+Task tHalfExposureTimeout(HALF_EXPOSURE_TIMEOUT_MS, 1, &Task_HalfExposureTimeout);
+Task tAlarmTimeout(ALARM_TIMEOUT_MS, 1, &Task_AlarmTimeout);
+Task tCooldownTimeout(COOLDOWN_TIMEOUT_MS, 1, &Task_CooldownTimeout);
 
 
 typedef enum{
@@ -34,10 +36,6 @@ typedef enum{
 
 AppState_t g_AppState = ST_IDLE;
 
-uint32_t g_ExposureStartTime = 0;
-uint32_t g_CooldownStartTime = 0;
-
-bool gb_HalfExposureIndicated = false;
 
 //----------- function prototypes -------------
 // FSM 
@@ -168,6 +166,7 @@ void setup() {
   ButtonPin_Init();
   BuzzerPin_Init();
   LightSensorPin_Init();
+  AccelerometerPin_Init();
 
   // Initialize Serial communication for debugging
   Serial.begin(9600);
@@ -181,15 +180,17 @@ void setup() {
   runner.addTask(tBargraph);
   runner.addTask(tBuzzer);
   runner.addTask(tRGBBlink);
+  runner.addTask(tAccelerometer);
 
   runner.addTask(tHalfExposureTimeout);
   runner.addTask(tAlarmTimeout);
   runner.addTask(tCooldownTimeout);
   
   // Enable the tasks
-  tReadLight.enable();
+  //tReadLight.enable();
   tReadButton.enable();
   tBargraph.enable();
+  tAccelerometer.enable();
 
   tAlarmTimeout.enable();
   tHalfExposureTimeout.enable();
@@ -214,6 +215,6 @@ void loop(){
   }
   
   // Update the FSM
-  FSM_Update();
+  //FSM_Update();
 }
 

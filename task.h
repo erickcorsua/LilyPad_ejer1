@@ -15,13 +15,22 @@
 #define RGB_BLINK_PERIOD_MS  500U
 #define BUZZER_PERIOD_MS     500U
 #define BUTTON_PERIOD_MS     20U
+#define ACCELEROMETER_PERIOD_MS 100U
 
+//timeouts for the exposure and cooldown states
+#define HALF_EXPOSURE_TIMEOUT_MS 10000U
+#define ALARM_TIMEOUT_MS         20000U
+#define COOLDOWN_TIMEOUT_MS      30000U
 
 // Variables globales compartidas
 extern uint16_t g_LightRaw;
 extern uint8_t  g_LightLevel;
 extern uint8_t  g_BarLevel;
 extern uint8_t  g_LedIndex;
+
+extern int16_t g_AccelerometerX;
+extern int16_t g_AccelerometerY;
+extern int16_t g_AccelerometerZ;
 
 extern bool gb_ButtonPressed;
 
@@ -36,6 +45,7 @@ void Task_ReadButton(void);
 void Task_Bargraph(void);
 void Task_RGBBlink(void);
 void Task_Buzzer(void);
+void Task_Accelerometer(void);
 
 void Task_HalfExposureTimeout(void);
 void Task_AlarmTimeout(void);

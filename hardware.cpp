@@ -14,7 +14,7 @@ bool gb_InternalLedPin_Init  =false;
 bool gb_ButtonPin_Init       =false;
 bool gb_BuzzerPin_Init       =false;
 bool gb_LightSensorPin_Init  =false;
-
+bool gb_AccelerometerPin_Init=false;
 //================ function prototypes ================
 // initialize the hardware pins
 void LedBarPin_Init(void);
@@ -24,6 +24,7 @@ void InternalLedPin_Init(void);
 void ButtonPin_Init(void);
 void BuzzerPin_Init(void);
 void LightSensorPin_Init(void);
+void AccelerometerPin_Init(void);
 
 //------LedBar functions------
 void BarLed_Set(uint8_t ledIndex, bool continuous);
@@ -35,6 +36,8 @@ uint16_t LightSensor_Read(void);
 //---Buzzer functions---------
 void Buzzer_On(uint16_t freq);
 void Buzzer_Off(void);
+//---Accelerometer functions---
+void Accelerometer_Read(int16_t* x, int16_t* y, int16_t* z);
 
 
 
@@ -112,6 +115,19 @@ void LightSensorPin_Init(void){
 
 }
 //-------------------------------
+void AccelerometerPin_Init(void){
+
+    if(!gb_AccelerometerPin_Init){
+
+        pinMode(PIN_ACCELEROMETER_X, INPUT);
+        pinMode(PIN_ACCELEROMETER_Y, INPUT);
+        pinMode(PIN_ACCELEROMETER_Z, INPUT);
+        
+        gb_AccelerometerPin_Init = true;
+    }
+
+}
+
 //some other functions can be added here for the hardware,
 //like reading the button state, reading the light sensor value, etc.
 
@@ -178,4 +194,13 @@ void Buzzer_On(uint16_t freq){
 */
 void Buzzer_Off(void){
     noTone(PIN_BUZZER);
+}
+/*
+    This functions reads the values from the accelerometer and prints them to the Serial monitor.
+    The return is a uint16_t array with the values of the X, Y and Z axes.
+*/
+void Accelerometer_Read(int16_t* x, int16_t* y, int16_t* z){
+    *x = analogRead(PIN_ACCELEROMETER_X);
+    *y = analogRead(PIN_ACCELEROMETER_Y);
+    *z = analogRead(PIN_ACCELEROMETER_Z);
 }

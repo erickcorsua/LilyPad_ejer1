@@ -70,8 +70,13 @@ static const uint8_t LED_BAR_PINS[NUM_BAR_LEDS] =
 // Zumbador (buzzer)
 #define PIN_BUZZER     A3
 
-// Posibles periféricos de la práctica
+// Light sensor
 #define PIN_LIGHT_SENSOR   A2
+
+// acelerometer
+#define PIN_ACCELEROMETER_X   A5
+#define PIN_ACCELEROMETER_Y   A6
+#define PIN_ACCELEROMETER_Z   A7
 
 
 // Si existe interruptor físico en el diseño
@@ -85,7 +90,7 @@ extern bool gb_InternalLedPin_Init;
 extern bool gb_ButtonPin_Init;
 extern bool gb_BuzzerPin_Init;
 extern bool gb_LightSensorPin_Init;
-
+extern bool gb_AccelerometerPin_Init;
 //================ function prototypes ================
 // initialize the hardware pins
 void LedBarPin_Init(void);
@@ -95,6 +100,7 @@ void InternalLedPin_Init(void);
 void ButtonPin_Init(void);
 void BuzzerPin_Init(void);
 void LightSensorPin_Init(void);
+void AccelerometerPin_Init(void);
 
 //------LedBar functions------
 void BarLed_Set(uint8_t ledIndex, bool continuous);
@@ -106,6 +112,8 @@ uint16_t LightSensor_Read(void);
 //---Buzzer functions---------
 void Buzzer_On(uint16_t freq);
 void Buzzer_Off(void);
+//---Accelerometer functions---
+void Accelerometer_Read(int16_t* x, int16_t* y, int16_t
 
 
 #endif // HARDWARE_H
