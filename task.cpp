@@ -1,26 +1,14 @@
+/*
+Title: task.cpp
+Author: Monica Carpio Erick CS
+Date: 2026-10-4
+Description: This file contains the implementation of the tasks used in the project.
+*/
+
 #include "task.h"
 #include <Arduino.h>
 #include "hardware.h"
 #include <stdint.h> 
-
-//MACROS
-//macros for the light sensor
-#define LIGHT_THRESHOLD      700U
-#define LIGHT_MIN  0U
-#define LIGHT_MAX  1003U
-
-//periods for the tasks
-#define LIGHT_SNSR_PERIOD_MS     100U
-#define BARGRAPH_PERIOD_MS   400U
-#define RGB_BLINK_PERIOD_MS  500U
-#define BUZZER_PERIOD_MS     500U
-#define BUTTON_PERIOD_MS     20U
-#define ACCELEROMETER_PERIOD_MS 100U
-
-//timeouts for the exposure and cooldown states
-#define HALF_EXPOSURE_TIMEOUT_MS 10000U
-#define ALARM_TIMEOUT_MS         20000U
-#define COOLDOWN_TIMEOUT_MS      30000U
 
 //==============global variables ==============
 uint16_t g_LightRaw = 0;
@@ -29,7 +17,7 @@ uint8_t g_BarLevel = 0;
 
 int16_t g_AccelerometerX = 0;
 int16_t g_AccelerometerY = 0;
-int16_t g_AccelerometerZ = 0;
+int16_t g_AccelerometerZ = 0; // neutral value is 512, the range is 0-1023
 
 bool gb_ButtonPressed = false;
 
@@ -60,8 +48,8 @@ void Task_ReadLight(void){
     //Avoid values outside the range of 0-100
     g_LightLevel = constrain(g_LightLevel, 0, 100);
 
-    Serial.print(" LEVEL=");
-    Serial.println(g_LightLevel);
+    //Serial.print(" LEVEL=");
+    //Serial.println(g_LightLevel);
 }
 
 /**
@@ -134,15 +122,15 @@ void Task_Buzzer(void){
  void Task_Accelerometer(void){
 
     Accelerometer_Read(&g_AccelerometerX, &g_AccelerometerY, &g_AccelerometerZ);
-
-    Serial.print("ACCELEROMETER X=");
+    Serial.print("Accelerometer X: ");
     Serial.print(g_AccelerometerX);
-    Serial.print(" Y=");
+    Serial.print(" Y: ");
     Serial.print(g_AccelerometerY);
-    Serial.print(" Z=");
+    Serial.print(" Z: ");
     Serial.println(g_AccelerometerZ);
-
+    
  }
+
 
 // ============ One shot tasks ==============
 
@@ -170,3 +158,13 @@ void Task_CooldownTimeout(void){
 
     Serial.println("COOLDOWN TIMEOUT");
 }
+
+/*
+                   _ |\_
+                   \` ..\
+              __,.-" =__Y=
+            ."        )
+      _    /   ,    \/\_
+     ((____|    )_-\ \_-`
+     `-----'`-----` `--`
+*/

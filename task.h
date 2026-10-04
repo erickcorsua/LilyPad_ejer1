@@ -1,3 +1,10 @@
+/*
+Title: task.h
+Author: Monica Carpio Erick CS 
+Date: 2026-10-4
+Description: This file contains the implementation of the tasks used in the project.
+*/
+
 #ifndef TASK_H
 #define TASK_H
 
@@ -5,7 +12,7 @@
 
 //MACROS
 //macros for the light sensor
-#define LIGHT_THRESHOLD      70U
+#define LIGHT_THRESHOLD 70U
 #define LIGHT_MIN  0U
 #define LIGHT_MAX  1003U
 
@@ -15,7 +22,7 @@
 #define RGB_BLINK_PERIOD_MS  500U
 #define BUZZER_PERIOD_MS     500U
 #define BUTTON_PERIOD_MS     20U
-#define ACCELEROMETER_PERIOD_MS 100U
+#define ACCELEROMETER_PERIOD_MS 1000U 
 
 //timeouts for the exposure and cooldown states
 #define HALF_EXPOSURE_TIMEOUT_MS 10000U
@@ -26,7 +33,6 @@
 extern uint16_t g_LightRaw;
 extern uint8_t  g_LightLevel;
 extern uint8_t  g_BarLevel;
-extern uint8_t  g_LedIndex;
 
 extern int16_t g_AccelerometerX;
 extern int16_t g_AccelerometerY;
@@ -53,4 +59,18 @@ void Task_CooldownTimeout(void);
 
 #endif
 
-        
+/*                      _
+                       | \
+                       | |
+                       | |
+  |\                   | |
+ /, ~\                / /
+X     `-.....-------./ /
+ ~-. ~  ~              |
+    \             /    |
+     \  /_     ___\   /
+     | /\ ~~~~~   \ |
+     | | \        || |
+     | |\ \       || )
+    (_/ (_/      ((_/
+*/

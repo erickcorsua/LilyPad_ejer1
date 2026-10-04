@@ -1,6 +1,7 @@
-//title: hardware.h
+//title: hardware.cpp
 // Autor: Monica Carpio, Erick Correa
-// Description: This file contains some functions for the hardware used in the project. 
+// Date: 2026-10-4
+// Description: This file contains the implementation of the hardware functions used in the project. 
 
 #include <stdint.h>
 #include <Arduino.h>
@@ -204,3 +205,22 @@ void Accelerometer_Read(int16_t* x, int16_t* y, int16_t* z){
     *y = analogRead(PIN_ACCELEROMETER_Y);
     *z = analogRead(PIN_ACCELEROMETER_Z);
 }
+
+/*
+       _                        
+       \`*-.                    
+        )  _`-.                 
+       .  : `. .                
+       : _   '  \               
+       ; *` _.   `*-._          
+       `-.-'          `-.       
+         ;       `       `.     
+         :.       .        \    
+         . \  .   :   .-'   .   
+         '  `+.;  ;  '      :   
+         :  '  |    ;       ;-. 
+         ; '   : :`-:     _.`* ;
+[ideas].*' /  .*' ; .*`- +'  `*' 
+      `*-*   `*-*  `*-*'
+
+*/

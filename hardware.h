@@ -3,9 +3,6 @@
 //descripcion: Definicion de pines de hardware para el proyecto usando 
 //             Lilypad USB Plus y Arduino IDE
 
-// hardware.h
-// Autor: Monica Carpio, Erick Correa
-
 #ifndef HARDWARE_H
 #define HARDWARE_H
 
@@ -113,7 +110,20 @@ uint16_t LightSensor_Read(void);
 void Buzzer_On(uint16_t freq);
 void Buzzer_Off(void);
 //---Accelerometer functions---
-void Accelerometer_Read(int16_t* x, int16_t* y, int16_t
-
+void Accelerometer_Read(int16_t* x, int16_t* y, int16_t* z);
 
 #endif // HARDWARE_H
+
+/*
+  ,-.       _,---._ __  / \
+ /  )    .-'       `./ /   \
+(  (   ,'            `/    /|
+ \  `-"             \'\   / |
+  `.              ,  \ \ /  |
+   /`.          ,'-`----Y   |
+  (            ;        |   '
+  |  ,-.    ,-'         |  /
+  |  | (   |            | /
+  )  |  \  `.___________|/
+  `--'   `--'
+*/

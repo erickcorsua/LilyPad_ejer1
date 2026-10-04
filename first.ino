@@ -1,13 +1,45 @@
+/*
+    .-_---...._____
+ .-((_.>      _____::::::--------------
+ )   '--\--"""'
+(        )
+ '--.   /
+  _  \ (
+ (   /  '.
+  '-'     \
+           |
+           )
+  .-----'`
+ (
+  '-.
+     \
+      |
+    _.'
+
+╗   ╗                ╦
+║ o ║                ║
+║ ╦ ║ ╦ ╦  ╔═╗ ╔═╗ ╔═╣
+║ ║ ║ ║ ║  ║ ║ ╔═╣ ║ ║
+╩ ╩ ╩ ╚═╣  ╠═╝ ╚═╚ ╚═╝  ejer1
+        ║  ║          
+      ╚═╝  ╩          
+
+Title: first.ino
+Author: Monica Carpio Erick CS 
+Date: 2026-10-4
+Description: This is the main file of the project, it contains the setup and loop functions,
+              and the FSM that controls the state of the system. We will use the TaskScheduler library to manage the tasks,
+              and the hardware.h and task.h files to manage the hardware and the tasks respectively. Always trying to keep 
+              the code as modular as possible, so we can reuse it in other projects. The FSM will have 4 states: IDLE, EXPOSURE
+              ALARM and COOLDOWN. In the IDLE state, we will read the light sensor and the button, and we will update the bargraph.    
+              Also we try to keep the efficiency of the code, disabling the tasks that are not needed in each state, and enabling them
+              when they are needed. 
+*/
 #include <Arduino.h>
 #include "hardware.h"
 #include "task.h"
 #include <TaskScheduler.h>
 #include <stdint.h>
-
-/*
-For this project, we will use the Lilypad USB Plus board. And the TaskScheduler library 
-to manage the tasks. This library was done by Anatoli Arkhipenko
-*/
 //================global variables ==============
 // Define the scheduler
 Scheduler runner;
@@ -21,34 +53,55 @@ Task tBuzzer(RGB_BLINK_PERIOD_MS, TASK_FOREVER, &Task_Buzzer);
 Task tRGBBlink(RGB_BLINK_PERIOD_MS, TASK_FOREVER, &Task_RGBBlink);
 Task tAccelerometer(ACCELEROMETER_PERIOD_MS, TASK_FOREVER, &Task_Accelerometer);
 
+// One shot tasks for the timeouts
 Task tHalfExposureTimeout(HALF_EXPOSURE_TIMEOUT_MS, 1, &Task_HalfExposureTimeout);
 Task tAlarmTimeout(ALARM_TIMEOUT_MS, 1, &Task_AlarmTimeout);
 Task tCooldownTimeout(COOLDOWN_TIMEOUT_MS, 1, &Task_CooldownTimeout);
 
-
+//the FSM state variable
 typedef enum{
-    ST_IDLE = 0,
-    ST_EXPOSURE,
-    ST_ALARM,
-    ST_COOLDOWN
+    ST_IDLE = 0, // The system is idle, waiting for the light level to be above the threshold
+    ST_EXPOSURE, // The system is in exposure, the light level is above the threshold, we are measuring the light level and updating the bargraph
+    ST_ALARM,    // The system is in alarm, the light level is above the threshold, we are alerting the user
+    ST_COOLDOWN  // The system is in cooldown, we are waiting for the light level to return to normal
 
 } AppState_t;
 
 AppState_t g_AppState = ST_IDLE;
-
 
 //----------- function prototypes -------------
 // FSM 
 void FSM_Update(void);
 
 //----------- function definitions -----------
-void FSM_Update(void){
+void FSM_Update(void){  
+  // check the accelerometer X axis value, if it is above 590, and the Y axis is above 440, and the Z axis is above 610,  
+  // we activate the barled task
+  if(g_AccelerometerX > 460 && g_AccelerometerY > 364 && g_AccelerometerZ > 600){
+    if(tBargraph.isEnabled()==false){
+
+      tBargraph.enable();
+      Serial.println("Bargraph task enabled");
+    }
+  }
+  else{
+    if(tBargraph.isEnabled()==true){
+
+      tBargraph.disable();
+      BarLed_Off();
+      Serial.println("Bargraph task disabled");
+
+    }
+  }
 
   switch(g_AppState){
 
         // In the idle state, we do measurements of the light, we exit when th light level is above the threshold
         // we lunch the half exposure timeout and the alarm timeout, very usefull for the next states
         case ST_IDLE:
+
+            //Button task is not needed in this state, we will use it only in the alarm state
+            tReadButton.disable();
 
             if(g_LightLevel > LIGHT_THRESHOLD){
                 
@@ -107,10 +160,14 @@ void FSM_Update(void){
                 tAlarmTimeout.disable();
                 tCooldownTimeout.disable();
             }
+        break;
         // In the alarm state, we wait for the the button to be pressed, when it is pressed, we 
         //turn off the buzzer and the RGB LED, and we go to the cooldown state, where we wait for 30 seconds 
         //before going back to the idle state
         case ST_ALARM:
+        //we need the button task enabled in this state, to detect when the button is pressed
+        tReadButton.enable();
+
             if(gb_ButtonPressed){
                 gb_ButtonPressed = false;
 
@@ -124,6 +181,7 @@ void FSM_Update(void){
 
                 //Deactivate the measurement tasks, we don't need to measure the light level during the cooldown
                 //and the bargraph will be turned off, so we don't need to measure the light level during the cooldown
+                //and the button task will be disabled.
                 tReadLight.disable();
                 tBargraph.disable();
                 tReadButton.disable();
@@ -135,6 +193,7 @@ void FSM_Update(void){
                 //start the cooldown timeout
                 tCooldownTimeout.restartDelayed();
             }
+        break;
         // In the cooldown state, we wait for the cooldown timeout to be triggered, when it is triggered, we go
         //back to the idle state
         case ST_COOLDOWN:
@@ -186,10 +245,10 @@ void setup() {
   runner.addTask(tAlarmTimeout);
   runner.addTask(tCooldownTimeout);
   
-  // Enable the tasks
-  //tReadLight.enable();
-  tReadButton.enable();
-  tBargraph.enable();
+  // Enable the tasks  
+  tReadButton.disable();
+  tBargraph.disable(); // Start with the bargraph task disabled
+  tReadLight.enable();
   tAccelerometer.enable();
 
   tAlarmTimeout.enable();
@@ -215,6 +274,6 @@ void loop(){
   }
   
   // Update the FSM
-  //FSM_Update();
+  FSM_Update();
 }
 
